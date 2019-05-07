@@ -50,7 +50,7 @@ int main() {
 
 	addBitCountToLastBlock(message, sizeOfFileInBytes, blockCount);
 
-	//computeMessageDigest(message, blockCount);
+	computeMessageDigest(message, blockCount);
 
 	return 0;
 }
@@ -67,6 +67,7 @@ unsigned int readFile(unsigned char buffer[]) {
 
 	c = getchar();
 
+	//inserts character 'c' into buffer[i] sequentially
 	while (c != EOF) {
 
 		if (i <= 1000000) {
@@ -81,7 +82,7 @@ unsigned int readFile(unsigned char buffer[]) {
 		}
 	}
 
-	buffer[i + 1] = 128;
+	//buffer[i+1] = 128;
 	debug == 1 ? printf("buffer[%i] = %c\n", i, buffer[i]) : puts("");
 	return count;
 }
@@ -107,22 +108,32 @@ void charToInt(unsigned char buffer[], unsigned int message[],
 	unsigned int i = 0;
 	unsigned int j = 0;
 
+
+	//takes chars from buffer[i, i+1, i+2, i+3] and packs them into message[i] as an int
 	while (j <= sizeOfFileInBytes) {
 
 		for (i = 0; i < 16; i++) {
+
+
+			//look for when j == 0x80; if it does, it should push it to the very end, then change it?
 
 			char1 = buffer[j];
 			char2 = buffer[j+1];
 			char3 = buffer[j+2];
 			char4 = buffer[j+3];
+
 			j += 4;
 
 			message[i] = char1 << 24 | char2 << 16 | char3 << 8 | char4;
-			printbits(message[i]);
 
 		}
 
+		//should set the last index of message to the length of the files in bits
 		addBitCountToLastBlock(message, sizeOfFileInBytes, blockCount);
+
+		for(i = 0; i < 16; i++) {
+			printbits(message[i]);
+		}
 
 	}
 }
@@ -155,12 +166,12 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 
 
 
-	printf("\nThe initial hex values of H are\n:  0:%X   1:%X   2:%X   3:%X   4:%X \n", H[0], H[1], H[2], H[3], H[4]);
+	printf("\nThe initial hex values of H are:  0:%08X  1:%08X  2:%08X  3:%08X  4:%08X \n", H[0], H[1], H[2], H[3], H[4]);
 
 
 	for (i = 0; i < blockCount; i++) {
 
-		for (t= 0; t <= 79; t++) {
+		for (t = 0; t <= 79; t++) {
 
 			if (t < 16) {
 			W[t] = message[t];
@@ -168,9 +179,9 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 			W[t] = shift(1, W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
 			}
 		}
-	}
+	//}
 
-	for (i = 0; i < blockCount; i++) {
+	//for (i = 0; i < blockCount; i++) {
 
 		A = H[0]; B = H[1]; C = H[2]; D = H[3]; E = H[4];
 
@@ -200,7 +211,7 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 
 unsigned int shift(int n, unsigned int X) {
    unsigned int shift;
-   shift = (X << n) ^ (X>>32-n);
+   shift = (X << n) | (X >> 32-n);
    return shift;
 }
 
