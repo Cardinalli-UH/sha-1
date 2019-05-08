@@ -1,3 +1,4 @@
+
 /*
  *	Cardinalli, Robert
  *	 ICS 212 Final Pj
@@ -82,7 +83,7 @@ unsigned int readFile(unsigned char buffer[]) {
 		}
 	}
 
-	//buffer[i+1] = 128;
+	buffer[i] = 128;
 	debug == 1 ? printf("buffer[%i] = %c\n", i, buffer[i]) : puts("");
 	return count;
 }
@@ -131,9 +132,6 @@ void charToInt(unsigned char buffer[], unsigned int message[],
 		//should set the last index of message to the length of the files in bits
 		addBitCountToLastBlock(message, sizeOfFileInBytes, blockCount);
 
-		for(i = 0; i < 16; i++) {
-			printbits(message[i]);
-		}
 
 	}
 }
@@ -161,8 +159,8 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 	unsigned int H[5]= {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
 	unsigned int W[80];
 	unsigned int t = 0;
-	unsigned int current = 0;
 	unsigned int i = 0;
+	unsigned int k = 0;
 
 
 
@@ -171,17 +169,23 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 
 	for (i = 0; i < blockCount; i++) {
 
-		for (t = 0; t <= 79; t++) {
+		for (t = 0; t < 80; t++) {
 
 			if (t < 16) {
 			W[t] = message[t];
+			printf("compiling W[0-15] @ t equals: %i; block #%i\n", t, i+1);
 			} else {
 			W[t] = shift(1, W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
+			printf("compiling W[16-79] @ t equals: %i; block #%i\n", t, i+1);
 			}
 		}
-	//}
 
-	//for (i = 0; i < blockCount; i++) {
+
+		for(k = 0; k < 16; k++) {
+			printf("k equals: %i\n", k);
+			printbits(message[k]);
+		}
+
 
 		A = H[0]; B = H[1]; C = H[2]; D = H[3]; E = H[4];
 
@@ -203,11 +207,12 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 		H[3] = H[3] + D;
 		H[4] = H[4] + E;
 
-	}
+
 
     printf("message digest: %08X %08X %08X %08X %08X\n", H[0], H[1], H[2], H[3], H[4]);
-}
 
+	}
+}
 
 unsigned int shift(int n, unsigned int X) {
    unsigned int shift;
@@ -260,5 +265,3 @@ unsigned int K(unsigned int t){
 	return K;
 
 }
-
-
