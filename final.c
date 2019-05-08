@@ -13,7 +13,7 @@
 #define MAX 1048576
 
 //debug boolean
-int debug = 1;
+int debug = 0;
 
 //prototypes
 unsigned int readFile(unsigned char[]);
@@ -157,9 +157,10 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 
 	unsigned int A, B, C, D, E, TEMP;
 	unsigned int H[5]= {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
-	unsigned int W[80];
+	unsigned int W[blockCount][80];
 	unsigned int t = 0;
-	unsigned int i = 0;
+	//block iterator
+	unsigned int itr = 0;
 	unsigned int k = 0;
 
 
@@ -167,23 +168,25 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 	printf("\nThe initial hex values of H are:  0:%08X  1:%08X  2:%08X  3:%08X  4:%08X \n", H[0], H[1], H[2], H[3], H[4]);
 
 
-	for (i = 0; i < blockCount; i++) {
+	for (itr = 0; itr < blockCount; itr++) {
 
 		for (t = 0; t < 80; t++) {
 
 			if (t < 16) {
-			W[t] = message[t];
-			printf("compiling W[0-15] @ t equals: %i; block #%i\n", t, i+1);
+				W[itr][t] = message[t];
+				debug == 1 ? printf("compiling W[0-15] @ t equals: %i; block #%i\n", t, itr+1) : printf(" ");
 			} else {
-			W[t] = shift(1, W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
-			printf("compiling W[16-79] @ t equals: %i; block #%i\n", t, i+1);
+				W[itr][t] = shift(1, W[itr][t-3] ^ W[itr][t-8] ^ W[itr][t-14] ^ W[itr][t-16]);
+				debug == 1 ? printf("compiling W[16-79] @ t equals: %i; block #%i\n", t, itr+1) : printf(" ");
 			}
 		}
+		puts("");
 
-
-		for(k = 0; k < 16; k++) {
-			printf("k equals: %i\n", k);
-			printbits(message[k]);
+		if (blockCount <= 2) {
+			for(k = 0+(itr*16); k < 16+(itr*16); k++) {
+				printf("k=%i:", k);
+				printbits(message[k]);
+			}
 		}
 
 
@@ -191,11 +194,12 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 
 			for (t = 0; t < 80; t++) {
 
-			TEMP = shift(5,A) + f(t,B,C,D) + E + W[t] + K(t);
+			TEMP = shift(5,A) + f(t,B,C,D) + E + W[itr][t] + K(t);
 
 			E = D; D = C; C = shift(30, B); B = A; A = TEMP;
 
 			if (blockCount <= 2) {
+
 				printf("t = %02d: %08X %08X %08X %08X %08X\n", t, A, B, C, D, E);
 			}
 
@@ -207,11 +211,13 @@ void computeMessageDigest(unsigned int message[], unsigned int blockCount){
 		H[3] = H[3] + D;
 		H[4] = H[4] + E;
 
-
-
-    printf("message digest: %08X %08X %08X %08X %08X\n", H[0], H[1], H[2], H[3], H[4]);
-
+		if (blockCount <= 2) {
+			printf("block#%i message digest: %08X %08X %08X %08X %08X\n", itr+1, H[0], H[1], H[2], H[3], H[4]);
+		}
 	}
+
+    printf("final message digest: %08X %08X %08X %08X %08X\n", H[0], H[1], H[2], H[3], H[4]);
+
 }
 
 unsigned int shift(int n, unsigned int X) {
